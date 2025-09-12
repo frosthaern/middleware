@@ -33,3 +33,4 @@ go.work.sum
 
 # personal files
 IDEA.md
+.gitignore

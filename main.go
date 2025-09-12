@@ -2,46 +2,53 @@ package main
 
 import (
 	"fmt"
-	"time"
-	"sync"
 	"net/http"
+	"sync"
+	"time"
+	mid "rate-limiter/middleware"
 )
 
 var (
-	
 	route_time_map = make(map[string]time.Time)
-	mu sync.RWMutex
+	mu             sync.RWMutex
 )
 
-
 func handleRoot(w http.ResponseWriter, r *http.Request) {
-	mu.Lock()
-	defer mu.Unlock()
-	var req_url_path = r.URL.Path
-	value, ok := route_time_map[req_url_path]
-	var this_time = time.Now()
-	fmt.Printf("request obj: %s\n", req_url_path);
-	if ok {
-		var lapsed_time = this_time.Second() - value.Second()
-		if lapsed_time < 5 {
-			fmt.Printf("request was rejected at second %d ", time.Now().Second())
-			return
-		} else {
-			route_time_map[req_url_path] = this_time
-			fmt.Printf("this request waxs accepted at second %d", this_time.Second())
-			return
-		}
-	} else {
-		route_time_map[req_url_path] = this_time
-		fmt.Printf("this request waxs accepted at second %d", this_time.Second())
-		return		
-	}
+	fmt.Printf("Hello, World")
 }
 
 func main() {
 	localhost_addr := ":3000"
-	http.HandleFunc("/", handleRoot);
-	if err := http.ListenAndServe(localhost_addr, nil); err != nil {
+
+	
+	middleware := mid.NewMiddleWare()
+	middleware.Handle("/", http.HandlerFunc(handleRoot))
+
+	
+	if err := http.ListenAndServe(localhost_addr, middleware); err != nil {
 		fmt.Printf("Server Failed to Start at %s", localhost_addr)
 	}
+}
+
+func middleware1(f http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("printing first middleware shit")
+		f.ServeHTTP(w, r)
+	})
+}
+
+
+func middleware2(f http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("printing second middleware shit")
+		f.ServeHTTP(w, r)
+	})
+}
+
+
+func middleware3(f http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Printf("printing third middleware shit")
+		f.ServeHTTP(w, r)
+	})
 }
