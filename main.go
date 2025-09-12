@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"sync"
 	"time"
-	mid "rate-limiter/middleware"
+	middleware "rate-limiter/middleware"
 )
 
 var (
@@ -21,18 +21,25 @@ func main() {
 	localhost_addr := ":3000"
 
 	
-	middleware := mid.NewMiddleWare()
-	middleware.Handle("/", http.HandlerFunc(handleRoot))
+	mid := middleware.NewMiddlewareFuncBuilder()
+	mid.Add(middleware1)
+	mid.Add(middleware2)
+	mid.Add(middleware3)
+	overall_func := mid.Build(handleRoot)
+
+	// this is how i want the feature to be
+	root := middleware.NewMiddlewareRouteBuilder()
+	root.Set("/", overall_func)
 
 	
-	if err := http.ListenAndServe(localhost_addr, middleware); err != nil {
+	if err := http.ListenAndServe(localhost_addr, root); err != nil {
 		fmt.Printf("Server Failed to Start at %s", localhost_addr)
 	}
 }
 
 func middleware1(f http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("printing first middleware shit")
+		fmt.Printf("printing first middleware shit\n")
 		f.ServeHTTP(w, r)
 	})
 }
@@ -40,7 +47,7 @@ func middleware1(f http.Handler) http.Handler {
 
 func middleware2(f http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("printing second middleware shit")
+		fmt.Printf("printing second middleware shit\n")
 		f.ServeHTTP(w, r)
 	})
 }
@@ -48,7 +55,7 @@ func middleware2(f http.Handler) http.Handler {
 
 func middleware3(f http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Printf("printing third middleware shit")
+		fmt.Printf("printing third middleware shit\n")
 		f.ServeHTTP(w, r)
 	})
 }
