@@ -4,12 +4,12 @@ import "net/http"
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-	/*
-	 * So in the function make sure to call f.ServeHTTP(r, w)
-	 * where r http.Request
-	 * and w http.ResponseWriter
-	 * and in order to return of type http.Handler use http.HandlerFunc()
-	 */
+/*
+ * So in the function make sure to call f.ServeHTTP(r, w)
+ * where r http.Request
+ * and w http.ResponseWriter
+ * and in order to return of type http.Handler use http.HandlerFunc()
+ */
 
 func (m MiddlewareFunc) MiddlewareFu(next http.Handler) http.Handler {
 	return m(next)
@@ -22,7 +22,7 @@ func (m MiddlewareFunc) MiddlewareFu(next http.Handler) http.Handler {
 // 	 * you can add a few mids then do build nad add some more and do build again if you want
 // 	 * but it's usually better to create multiple diff MiddlewareFuncBuilder objects because you may want to add diff middlewares
 // 	 */
-	
+
 // 	middlewares []MiddlewareFunc
 // }
 
@@ -38,7 +38,7 @@ func (m Middlewares) Add(f MiddlewareFunc) Middlewares {
 
 func (m Middlewares) Build(f func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	var h http.Handler = http.HandlerFunc(f)
-	for i := len(m) - 1; i >= 0;  i-- {
+	for i := len(m) - 1; i >= 0; i-- {
 		h = m[i](h)
 	}
 	return h

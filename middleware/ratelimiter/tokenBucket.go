@@ -3,23 +3,31 @@ package ratelimiter
 import (
 	middleware "middleware/middleware"
 	"net/http"
-	"time"
 	"sync"
+	"time"
 )
 
 type TokenBucket struct {
-	capacity   int // this is max no of tokens at any point of time
-	tokens     int // no of currently available tokens
-	refillRate int // how many tokens to fill whenever a period happens
+	capacity     int           // this is max no of tokens at any point of time
+	tokens       int           // no of currently available tokens
+	refillRate   int           // how many tokens to fill whenever a period happens
 	refillPeriod time.Duration // time interval between each refill
-	lastRefill time.Time
-	mu sync.Mutex
+	lastRefill   time.Time
+	mu           sync.Mutex
 }
 
-func NewTokenBucket() {
+func NewTokenBucket(capacity int, refillRate int, refillPeriod time.Duration) *TokenBucket {
+	return &TokenBucket{
+		capacity: capacity,
+		refillRate: refillRate,
+		refillPeriod: refillPeriod,
+		tokens: capacity,
+		lastRefill: time.Now(),
+	}
+	
 }
 
-func (t *TokenBucket)RateLimiter() middleware.MiddlewareFunc {
+func (t *TokenBucket) RateLimiter() middleware.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			if !t.Allow() {

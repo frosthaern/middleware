@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"log"
-	"time"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Logger struct {
